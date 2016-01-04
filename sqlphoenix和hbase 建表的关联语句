@@ -1,0 +1,84 @@
+phoenix-->建表：
+CREATE TABLE IF NOT EXISTS "aisino_platform_shoplogs"("pk" VARCHAR  NOT NULL PRIMARY KEY ,"info"."userid" VARCHAR null,"info"."date" VARCHAR null,"info"."module" VARCHAR null,"info"."collogs" VARCHAR null);
+CREATE TABLE "aisino_platform_log_mid"("pk" VARCHAR NOT NULL PRIMARY KEY,"info"."userid" VARCHAR null,"info"."username" VARCHAR null,"info"."date" VARCHAR null,"info"."module" VARCHAR null,"info"."modular" VARCHAR null,"info"."ipadd" VARCHAR null,"info"."action" VARCHAR null,"info"."collogs" VARCHAR null,"info"."parakey" VARCHAR null,"info"."paravalue" VARCHAR null);
+userid,username,date,module,modular,ipadd,action,Collogs,parakey,paravalue
+CREATE TABLE IF NOT EXISTS "aisino_platform_shoplogssssssssss"("pk" VARCHAR  NOT NULL PRIMARY KEY ,"info"."date" VARCHAR null,"info"."action" VARCHAR null,"info"."parakey" VARCHAR null,"info"."paravalue" VARCHAR null,"info"."count" VARCHAR null);
+CREATE TABLE "aisino_platform_log_zh"("pk" VARCHAR NOT NULL PRIMARY KEY,"info"."userid" VARCHAR null,"info"."username" VARCHAR null,"info"."date" VARCHAR null,"info"."module" VARCHAR null,"info"."modular" VARCHAR null,"info"."ipadd" VARCHAR null,"info"."action" VARCHAR null,"info"."collogs" VARCHAR null,"info"."salestax" VARCHAR null,"info"."salestaxname" VARCHAR null,"info"."salestaxtime" VARCHAR null,"info"."salestaxipadd" VARCHAR null,"info"."salestaxcode" VARCHAR null,"info"."billtype" VARCHAR null,"info"."billnum" VARCHAR null,"info"."billcode" VARCHAR null,"info"."company" VARCHAR null);
+CREATE TABLE "NNZhKp_log"("pk" VARCHAR NOT NULL PRIMARY KEY,"info"."userid" VARCHAR null,"info"."username" VARCHAR null,"info"."date" VARCHAR null,"info"."module" VARCHAR null,"info"."modular" VARCHAR null,"info"."ipadd" VARCHAR null,"info"."action" VARCHAR null,"info"."collogs" VARCHAR null,"info"."salestax" VARCHAR null,"info"."salestaxname" VARCHAR null,"info"."salestaxtime" VARCHAR null,"info"."salestaxipadd" VARCHAR null,"info"."salestaxcode" VARCHAR null,"info"."billtype" VARCHAR null,"info"."billnum" VARCHAR null,"info"."billcode" VARCHAR null,"info"."company" VARCHAR null);
+
+
+
+phoenix-->
+CREATE TABLE "aisino_platform_log_jrmid_click"("pk" DATE NOT NULL PRIMARY KEY,"info"."count" INTEGER null,"info"."paravalue" VARCHAR null,"info"."parakey" VARCHAR null,"info"."action" VARCHAR null)
+联合主键"date", "action","parakey","paravalue"
+create table "aisino_platform_log_jrmid_click" ("date" DATE not null,"action" VARCHAR not null,"parakey" VARCHAR not null,"count" INTEGER not null,"paravalue" VARCHAR not null,pk VARCHAR not null constraint pk primary key("date", "action","parakey","paravalue"));
+
+建索引：
+create index idx_userid on "aisino_platform_shoplogs"("info"."userid");
+删索引：
+DROP INDEX idx_userid ON "aisino_platform_shoplogs"
+
+
+
+hbase shell-->
+create 'aisino_platform_log_jrmid_click',{NAME=>'info'}
+create 'aisino_platform_log_mid',{NAME=>'info'}
+
+
+
+hive-->
+create table mytest3 as select to_date(a.date),count(1) count,a.paravalue ,a.parakey,a.action from hbase_to_hive_aisino_platform_log a group by a.paravalue,a.parakey,a.action,to_date(a.date);
+create table mytest4 as select to_date(a.date),count(1) count,a.paravalue1,a.paravalue2,a.paravalue3,a.paravalue4,a.paravalue5,a.action from hbase_aisino_platform_log_jr a group by a.action,to_date(a.date),a.paravalue1,a.paravalue2,a.paravalue3,a.paravalue4,a.paravalue5;
+create table mytest5 as select count(1) count,a.action ,a.date ,userid FROM hbase_aisino_platform_log_jr a group by a.action ,a.date ,a.userid;
+隐射hbase表到hive
+CREATE EXTERNAL TABLE hbase_aisino_platform_log_jr(key string, action string,collogs string,date string,ipadd string,modular string,module string,userid string,username string,paravalue1 string,paravalue2 string,paravalue3 string,paravalue4 string,paravalue5 string) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:action,info:collogs,info:date,info:ipadd,info:modular,info:module,info:userid,info:username,info:paravalue1,info:paravalue2,info:paravalue3,info:paravalue4,info:paravalue5") TBLPROPERTIES ("hbase.table.name" = "aisino_platform_log_jr");
+CREATE EXTERNAL TABLE hbase_aisino_platform_log_zh(key string, userid string,username string,date string,module string,modular string,ipadd string,action string,Collogs string,salestax string,salestaxname string,salestaxtime string,salestaxipadd string,salestaxcode string,billtype string,billnum string,billcode string,company string) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:userid,info:username,info:date,info:module,info:modular,info:ipadd,info:action,info:collogs,info:salestax,info:salestaxname,info:salestaxtime,info:salestaxipadd,info:salestaxcode,info:billtype,info:billnum,info:billcode,info:company") TBLPROPERTIES ("hbase.table.name" = "aisino_platform_log_zh");
+CREATE EXTERNAL TABLE hbase_to_hive_aisino_platform_log_jrmid_click(pk INT, date DATE,action string,parakey string,count INT,paravalue string) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:date,info:action,info:parakey,info:count,info:paravalue") TBLPROPERTIES ("hbase.table.name" = "aisino_platform_log_jrmid_click");
+CREATE EXTERNAL TABLE hbase_to_hive_aisino_platform_log(key string, action string,collogs string,date string,ipadd string,modular string,module string,userid string,username string,parakey string,paravalue string) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:action,info:collogs,info:date,info:ipadd,info:modular,info:module,info:userid,info:username,info:parakey,info:paravalue") TBLPROPERTIES ("hbase.table.name" = "aisino_platform_log");
+CREATE EXTERNAL TABLE hbase_NNZhKp_log(key string, userid string,username string,date string,module string,modular string,ipadd string,action string,Collogs string,salestax string,salestaxname string,salestaxtime string,salestaxipadd string,salestaxcode string,billtype string,billnum string,billcode string,company string) STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,info:userid,info:username,info:date,info:module,info:modular,info:ipadd,info:action,info:collogs,info:salestax,info:salestaxname,info:salestaxtime,info:salestaxipadd,info:salestaxcode,info:billtype,info:billnum,info:billcode,info:company") TBLPROPERTIES ("hbase.table.name" = "NNZhKp_log");
+
+hive--udf
+create temporary function row_number as 'com.test.hive.udf.RowNumber';
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root' WITH GRANT OPTION;
+flush privileges;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION;
+CREATE DATABASE IF NOT EXISTS aisinobigdata
+
+
+sqoop--> 
+./sqoop export --connect jdbc:mysql://192.168.1.10:3306/aisinobigdata --username dev --password dev123456 --table aisino_platform_log_jrmid --export-dir /user/hive/warehouse/hbase_to_hive_aisino_platform_log_jrmid_click --input-fields-terminated-by '\001'
+./sqoop export --connect jdbc:mysql://192.168.1.10:3306/aisinobigdata --username dev --password dev123456 --table aisino_platform_log_jr --export-dir /user/hive/warehouse/mytest4 --input-fields-terminated-by '\001'
+./sqoop export --connect jdbc:mysql://192.168.1.10:3306/aisinobigdata --username dev --password dev123456 --table aisino_platform_log_jruser --export-dir /user/hive/warehouse/mytest5 --input-fields-terminated-by '\001'
+
+  
+  spark-submit \
+    --class org.apache.spark.examples.SparkPi \
+    --master yarn-client \
+    /opt/software/hadoop/spark/spark-1.0.2/examples/target/scala-2.10/spark-examples-1.0.2-hadoop2.2.0.jar \
+    10
+ ../examples/target/scala-2.10/spark-examples-1.0.2-hadoop2.2.0.jar 
+–class org.apache.spark.examples.JavaSparkPi 
+–args yarn-standalone 
+–num-workers 3 
+--master-memory 512m
+--worker-memory 1g 
+–worker-cores 1
+    
+var file = sc.textFile("file:///home/aisino/test/log.txt")
+val hello = file.filter(line=>line.contains("shanghai"))
+hello.count
+
+    
+mysql-->
+select paravalue,parakey,action,sum(count) from aisino_platform_log_jrmid where action = '/abcde/defgh.do' and parakey = 'p3' and date between date_format('2006-10-31','yyyy-MM-dd') and date_format('2013-11-11','yyyy-MM-dd') group by action ,paravalue ,parakey limit 100
+select paravalue,parakey,action,sum(count) from aisino_platform_log_jrmid where action = '/abcde/defgh.do' and parakey = 'p3' and date > '2006-01-01' and date < '2013-11-11'  group by action ,paravalue ,parakey limit 100;
+
+
+flume-->
+../bin/flume-ng agent -c . -f ./exec_tail_to_hbase.conf -n a1 -Dflume.root.logger=INFO,console
+../bin/flume-ng agent -c . -f ./spool_aisino_platform_logs_jr_to_hbase.conf -n a1 -Dflume.root.logger=INFO,console
+
+hbase-bulkload
+HADOOP_CLASSPATH=`${HBASE_HOME}/bin/hbase classpath` 
+${HADOOP_HOME}/bin/hadoop jar ${HBASE_HOME}/hbase-VERSION.jar importtsv -Dimporttsv.columns=HBASE_ROW_KEY,d:c1,d:c2 -Dimporttsv.bulk.output=hdfs://storefileoutput datatsv hdfs://inputfile
